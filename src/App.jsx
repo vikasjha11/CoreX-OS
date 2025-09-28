@@ -1,0 +1,64 @@
+import React, { useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import Navbar from './components/navbar'
+import Hero from './components/Hero'
+import Services from './components/Services'
+import ProblemSolved from './components/ProblemSolved'
+import ContactUs from './components/ContactUs'
+import Footer from './components/Footer'
+
+// Module pages
+import ProcessManagement from './pages/ProcessManagement'
+import MemoryManagement from './pages/MemoryManagement'
+import DeadlockSync from './pages/DeadlockSync'
+import ShellKernel from './pages/ShellKernel'
+import SecurityAccess from './pages/SecurityAccess'
+import VisualizationReporting from './pages/VisualizationReporting'
+import Gamification from './pages/Gamification'
+import InnovationPage from './pages/Innovation'
+import ProcessMemoryCore from './pages/ProcessMemoryCore'
+import Developers from './components/Developers'
+
+const App = () => {
+  useEffect(() => {
+    document.documentElement.classList.add('dark')
+  }, [])
+
+  return (
+    <div className="min-h-screen font-sans bg-app">
+      <Navbar />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Landing />
+          }
+        />
+        <Route path="/process" element={<ProcessManagement />} />
+        <Route path="/memory" element={<MemoryManagement />} />
+        <Route path="/deadlock" element={<DeadlockSync />} />
+        <Route path="/shell-kernel" element={<ShellKernel />} />
+        <Route path="/security" element={<SecurityAccess />} />
+        <Route path="/visualization" element={<VisualizationReporting />} />
+        <Route path="/gamification" element={<Gamification />} />
+        <Route path="/innovation" element={<InnovationPage />} />
+        <Route path="/process-memory" element={<ProcessMemoryCore />} />
+      </Routes>
+      <Footer />
+    </div>
+  )
+}
+
+function Landing() {
+  return (
+    <main>
+      <Hero />
+      <Services />
+      <ProblemSolved />
+      <Developers />
+      <ContactUs />
+    </main>
+  )
+}
+
+export default App
