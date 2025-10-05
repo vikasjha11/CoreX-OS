@@ -1,5 +1,5 @@
-import React from 'react'
-import Shell from '../components/Shell.jsx'
+import React from 'react';
+import Shell from '../components/Shell.jsx';
 
 export default function ShellKernel() {
   return (
@@ -36,34 +36,16 @@ export default function ShellKernel() {
           <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
             <h3 className="text-xl font-semibold mb-4 text-purple-400">Key Features</h3>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Process management (add, kill, list)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Scheduler configuration
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Real-time system monitoring
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Command history (↑/↓ arrows)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Multiple scheduling algorithms
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span>
-                Interactive terminal experience
-              </li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Process management (add, kill, list)</li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Scheduler configuration</li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Real-time system monitoring</li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Command history (↑/↓ arrows)</li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Multiple scheduling algorithms</li>
+              <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Interactive terminal experience</li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
