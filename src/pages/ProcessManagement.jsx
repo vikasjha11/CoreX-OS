@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSimulation, useSimActions } from '../state/simulationStore.js'
 import GanttChart from '../components/visuals/GanttChart'
 
@@ -7,6 +7,25 @@ export default function ProcessManagement(){
   const scheduling = useSimulation(s=>s.scheduling)
   const actions = useSimActions()
 
+  // detect newly added processes so we can allocate requested memory right after process creation
+  const prevIdsRef = useRef(new Set(processes.map(p=>p.id)))
+  const pendingAllocRef = useRef(null)
+  useEffect(()=>{
+    const prev = prevIdsRef.current
+    const now = new Set(processes.map(p=>p.id))
+    const added = processes.filter(p=> !prev.has(p.id))
+    if(pendingAllocRef.current && added.length){
+      actions.allocateMemory(added[0].id, +pendingAllocRef.current)
+      pendingAllocRef.current = null
+    }
+    prevIdsRef.current = now
+  }, [processes, actions])
+
+  function addProcessAndMaybeAlloc(p){
+    if(p.memory) pendingAllocRef.current = +p.memory
+    actions.addProcess(p)
+  }
+
   return (
     <PageLayout
       title="Process Management"
@@ -14,13 +33,13 @@ export default function ProcessManagement(){
       <div className="grid gap-8 md:grid-cols-2">
         <div className="card-surface p-5">
           <h3 className="font-semibold text-sm mb-4">Add Process</h3>
-            <ProcessForm onAdd={actions.addProcess} />
+            <ProcessForm onAdd={addProcessAndMaybeAlloc} />
           <h3 className="font-semibold text-sm mt-8 mb-2">Current Processes</h3>
           <ul className="text-xs space-y-1 max-h-44 overflow-auto pr-1">
             {processes.map(p=>(
               <li key={p.id} className="flex justify-between border-b border-white/10 pb-1">
                 <span>{p.name || p.id}</span>
-                <span>burst:{p.burst} prio:{p.priority}</span>
+                <span>burst:{p.burst} prio:{p.priority} mem:{p.memory||'-'}</span>
               </li>
             ))}
             {!processes.length && <li className="text-gray-500">None</li>}
@@ -121,7 +140,7 @@ function PageLayout({ title, subtitle, children }){
   )
 }
 
-// small shared input style
+// keep shared input style injection (unchanged)
 const css = `
 .input{
   background:#0f1623;
