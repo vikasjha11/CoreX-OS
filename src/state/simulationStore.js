@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useRef, useSyncExternalStore, useCallback } from 'react'
 import { scheduleFCFS, scheduleSJF, schedulePriority, scheduleRR } from '../core/scheduling/algorithms.js'
-import { firstFit, bestFit, worstFit } from '../core/memory/alloc.js'
+import { firstFit, bestFit, worstFit, release as releaseMem } from '../core/memory/alloc.js'
 import { bankersSafe } from '../core/deadlock/bankers.js'
 import { genId, nowTs } from '../utils/id.js'
 
 const algMap = { FCFS: scheduleFCFS, SJF: scheduleSJF, PRIORITY: schedulePriority, RR: scheduleRR }
-const memStrategies = { FIRST_FIT: firstFit, BEST_FIT: bestFit, WORST_FIT: worstFit }
+
+const initialMemoryTotal = 256
 
 const initialState = {
   mode: 'user',
@@ -13,7 +14,11 @@ const initialState = {
   processes: [],
   readyQueue: [],
   waitQueue: [],
-  memory: { total: 512, blocks: [{ id: 'b0', size: 512, allocatedTo: null }], strategy: 'FIRST_FIT' },
+  memory: {
+    total: initialMemoryTotal,
+    strategy: 'FIRST_FIT',
+    blocks: [{ id: 'b0', size: initialMemoryTotal, allocatedTo: null }],
+  },
   resources: { R1: { total: 3, allocated: {} }, R2: { total: 2, allocated: {} } },
   scheduling: { algorithm: 'FCFS', quantum: 4, timeline: [], metrics: null },
   logs: [],
@@ -27,7 +32,7 @@ function createStore(){
 
   const set = updater => {
     const prev = state
-    const draft = JSON.parse(JSON.stringify(prev)) // Deep clone to avoid mutations
+    const draft = JSON.parse(JSON.stringify(prev)) 
     const result = typeof updater === 'function' ? updater(draft) : Object.assign(draft, updater)
     state = result || draft
     notify()
@@ -87,36 +92,46 @@ function createStore(){
         pushLog(`scheduler error: ${e.message}`, 'error')
       }
     },
-    allocateMemory(pid,size){
-      const strat = memStrategies[state.memory.strategy]
-      if(!strat) {
-        pushLog('Invalid memory strategy', 'error')
-        return
-      }
-      try {
-        const res = strat(state.memory.blocks, pid, size)
-        if(res.ok){
-          set(s=>{
-            s.memory = { ...s.memory, blocks: res.blocks }
-            return s
-          })
-          pushLog(`mem alloc pid=${pid} size=${size}`)
-        } else {
-          pushLog(`mem alloc failed pid=${pid} size=${size}`,'warn')
-        }
-      } catch(e) {
-        pushLog(`mem alloc error: ${e.message}`, 'error')
-      }
+    setMemoryStrategy(strategy){
+      set(s => {
+        s.memory.strategy = strategy
+        return s
+      })
     },
-    releaseMemory(pid){
-      set(s=>{
-        s.memory = {
-          ...s.memory,
-          blocks: s.memory.blocks.map(b=> b.allocatedTo===pid ? { ...b, allocatedTo:null } : b)
+    allocateMemory(pid, size){
+      set(s => {
+        const sz = Number(size)
+        if (!pid || !(sz > 0)) return s
+        const { strategy, blocks } = s.memory
+        let res
+        if (strategy === 'BEST_FIT') res = bestFit(blocks, pid, sz)
+        else if (strategy === 'WORST_FIT') res = worstFit(blocks, pid, sz)
+        else res = firstFit(blocks, pid, sz)
+        if (res.ok){
+          s.memory.blocks = res.blocks
         }
         return s
       })
-      pushLog(`mem released pid=${pid}`)
+    },
+    releaseMemory(pid){
+      set(s => {
+        if (!pid) return s
+        const res = releaseMem(s.memory.blocks, pid)
+        if (res.ok){
+          s.memory.blocks = res.blocks
+        }
+        return s
+      })
+    },
+    resetMemory(){
+      set(s => {
+        s.memory = {
+          total: s.memory.total ?? initialMemoryTotal,
+          strategy: 'FIRST_FIT',
+          blocks: [{ id: 'b0', size: s.memory.total ?? initialMemoryTotal, allocatedTo: null }],
+        }
+        return s
+      })
     },
     checkDeadlock(){
       try {
@@ -127,7 +142,13 @@ function createStore(){
         pushLog(`deadlock check error: ${e.message}`, 'error')
         return true // Assume safe on error
       }
-    }
+    },
+    resetAll(){
+      set(()=> structuredClone
+        ? structuredClone(initialState)
+        : JSON.parse(JSON.stringify(initialState))
+      )
+    },
   }
 
   return {
@@ -148,14 +169,12 @@ export function SimulationProvider({ children }){
 export function useSimulation(selector = s=>s){
   const store = useContext(StoreContext)
   if(!store) throw new Error('SimulationProvider missing')
-  
-  // Memoize the getSnapshot function to prevent infinite loops
   const getSnapshot = useCallback(() => {
     try {
       return selector(store.getState())
     } catch(e) {
       console.error('useSimulation selector error:', e)
-      return selector(initialState) // Fallback to initial state
+      return selector(initialState) 
     }
   }, [store, selector])
   
@@ -167,3 +186,5 @@ export function useSimActions(){
   if(!store) throw new Error('SimulationProvider missing')
   return store.actions
 }
+
+export { /* ...existing exports... */ }

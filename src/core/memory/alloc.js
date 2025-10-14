@@ -1,4 +1,3 @@
-// Memory block shape: { id, size, allocatedTo: null | pid }
 export function firstFit(blocks, pid, size){
   const clone = blocks.map(b=>({...b}))
   for(let i=0;i<clone.length;i++){
@@ -33,6 +32,11 @@ export function worstFit(blocks, pid, size){
   }
   if(worstIndex === -1) return { ok:false, blocks }
   return applyAllocation(clone, worstIndex, pid, size)
+}
+
+export function release(blocks, pid){
+  const clone = blocks.map(b => b.allocatedTo === pid ? { ...b, allocatedTo: null } : { ...b })
+  return { ok:true, blocks: mergeFree(clone) }
 }
 
 function applyAllocation(clone, idx, pid, size){

@@ -174,10 +174,8 @@ export default function ProblemSolved() {
         <div className="mt-14 flex flex-wrap gap-4 text-xs text-gray-400">
           <Badge>Live Gantt</Badge>
           <Badge>Fragmentation Map</Badge>
-          <Badge>Banker Safety</Badge>
           <Badge>Multi‑Algorithm</Badge>
           <Badge>Unified State</Badge>
-          <Badge>Planned RBAC</Badge>
           <Badge>AI Advisor (Planned)</Badge>
         </div>
       </div>

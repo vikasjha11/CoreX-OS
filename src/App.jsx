@@ -6,17 +6,13 @@ import Services from './components/Services'
 import ProblemSolved from './components/ProblemSolved'
 import ContactUs from './components/ContactUs'
 import Footer from './components/Footer'
-
-// Module pages
-import ProcessManagement from './pages/ProcessManagement'
-import MemoryManagement from './pages/MemoryManagement'
 import DeadlockSync from './pages/DeadlockSync'
 import ShellKernel from './pages/ShellKernel'
 import SecurityAccess from './pages/SecurityAccess'
 import VisualizationReporting from './pages/VisualizationReporting'
 import Gamification from './pages/Gamification'
 import InnovationPage from './pages/Innovation'
-import ProcessMemoryCore from './pages/ProcessMemoryCore'
+import ProcessMemoryCore from './pages/ProcessMemoryCore.jsx'
 import Developers from './components/Developers'
 
 const App = () => {
@@ -34,8 +30,6 @@ const App = () => {
             <Landing />
           }
         />
-        <Route path="/process" element={<ProcessManagement />} />
-        <Route path="/memory" element={<MemoryManagement />} />
         <Route path="/deadlock" element={<DeadlockSync />} />
         <Route path="/shell-kernel" element={<ShellKernel />} />
         <Route path="/security" element={<SecurityAccess />} />
@@ -43,6 +37,8 @@ const App = () => {
         <Route path="/gamification" element={<Gamification />} />
         <Route path="/innovation" element={<InnovationPage />} />
         <Route path="/process-memory" element={<ProcessMemoryCore />} />
+        <Route path="/process-management" element={<ProcessMemoryCore />} />
+        <Route path="/memory-management" element={<ProcessMemoryCore />} />
       </Routes>
       <Footer />
     </div>

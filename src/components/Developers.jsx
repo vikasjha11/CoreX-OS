@@ -4,27 +4,27 @@ import { IconBolt, IconCloud, IconShield } from './ui-icons'
 const team = [
   {
     name: 'Vikas Kumar Jha',
-    role: 'Scheduling & Core Logic',
-    focus: 'CPU algorithms, MLQ extension, metrics engine',
-    icon: <IconBolt className="w-5 h-5" />
+    role: 'Core Scheduling & Frontend Systems',
+    icon: <IconBolt className="w-5 h-5" />,
+    tags: ['Scheduling','Metrics','UI']
   },
   {
     name: 'Srishti Rautela',
-    role: 'Memory & Visualization',
-    focus: 'Allocation strategies, fragmentation map, Gantt UX',
-    icon: <IconCloud className="w-5 h-5" />
+    role: 'Kernel / Shell Integration',
+    icon: <IconCloud className="w-5 h-5" />,
+    tags: ['Kernel','Shell','Syscalls']
   },
   {
     name: 'Vishwajeet Kumar Nikhil',
-    role: 'Deadlock & Concurrency',
-    focus: 'Banker safety, sync primitives, future graph model',
-    icon: <IconShield className="w-5 h-5" />
+    role: 'Memory Management & Visualization',
+    icon: <IconBolt className="w-5 h-5 rotate-90" />,
+    tags: ['Memory','Allocation','Visualization']
   },
   {
     name: 'Stuti Tyagi',
-    role: 'Security & Innovation',
-    focus: 'RBAC design, shell syscall layer, AI advisor stubs',
-    icon: <IconBolt className="w-5 h-5" />
+    role: 'Concurrency & Deadlock Analysis',
+    icon: <IconShield className="w-5 h-5" />,
+    tags: ['Deadlock','Concurrency','Security']
   }
 ]
 
@@ -40,10 +40,9 @@ export default function Developers() {
             The <span className="text-indigo-500">Developers</span>
           </h2>
           <p className="mt-5 text-sm md:text-base text-gray-400 leading-relaxed">
-            Focused contributors driving each subsystem—clear ownership, rapid iteration.
+            Focused ownership across scheduling, kernel integration, memory, and concurrency.
           </p>
         </header>
-
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {team.map(m => (
             <div
@@ -59,14 +58,15 @@ export default function Developers() {
                   <p className="text-[11px] text-indigo-300 mt-0.5">{m.role}</p>
                 </div>
               </div>
-              <p className="mt-4 text-[11px] text-gray-400 leading-relaxed">{m.focus}</p>
-              <div className="mt-5 flex gap-2">
-                <span className="px-2.5 h-7 rounded-full bg-white/5 border border-white/10 text-[10px] tracking-wide text-gray-300 flex items-center">
-                  Core
-                </span>
-                <span className="px-2.5 h-7 rounded-full bg-white/5 border border-white/10 text-[10px] tracking-wide text-gray-300 flex items-center">
-                  OSSim
-                </span>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {m.tags.map(t=>(
+                  <span
+                    key={t}
+                    className="px-2.5 h-7 rounded-full bg-white/5 border border-white/10 text-[10px] tracking-wide text-gray-300 flex items-center"
+                  >
+                    {t}
+                  </span>
+                ))}
               </div>
               <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition pointer-events-none border border-indigo-500/30" />
             </div>
