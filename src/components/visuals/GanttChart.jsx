@@ -1,53 +1,113 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useSimulation } from '../../state/simulationStore.js'
 
-const colors = ['#6366f1','#ec4899','#10b981','#f59e0b','#3b82f6','#8b5cf6','#06b6d4']
+const palette = [
+  '#6366f1','#ec4899','#10b981','#f59e0b',
+  '#06b6d4','#a855f7','#ef4444','#84cc16',
+  '#0ea5e9','#d946ef','#f97316','#14b8a6'
+]
 
 export default function GanttChart(){
-  const scheduling = useSimulation(s=>s.scheduling)
-  const t = scheduling.timeline || []
-  const [tick, setTick] = useState(0)
+  const scheduling = useSimulation(s=>s.scheduling) ?? { timeline: [], algorithm:'FCFS', quantum:4 }
+  const processes = useSimulation(s=>s.processes) || []
+  const rawTimeline = Array.isArray(scheduling.timeline) ? scheduling.timeline : []
 
-  useEffect(()=>{ setTick(k=>k+1) }, [t.length, scheduling.algorithm, scheduling.metrics])
+  const procMap = useMemo(()=>{
+    const m = {}
+    processes.forEach(p=>{ m[p.id] = p.name || p.id })
+    return m
+  },[processes])
 
-  if(!t.length) return <div className="text-sm text-gray-500">No schedule yet.</div>
+  const timeline = useMemo(()=>{
+    return rawTimeline.map((seg,i)=>{
+      const start = typeof seg.start==='number' ? seg.start : 0
+      const end = typeof seg.end==='number'
+        ? seg.end
+        : (typeof seg.duration==='number' ? start + seg.duration
+           : (typeof seg.burst==='number' ? start + seg.burst : start+1))
+      const duration = Math.max(0, end - start)
+      const label = seg.name || procMap[seg.pid] || procMap[seg.id] || seg.pid || seg.id || `P${i+1}`
+      return { start, end, duration, label }
+    }).sort((a,b)=>a.start-b.start)
+  },[rawTimeline, procMap])
 
-  const total = Math.max(1, t[t.length-1].end || 0)
+  const totalTime = timeline.length ? Math.max(...timeline.map(s=>s.end)) : 0
+
+  const ticks = useMemo(()=>{
+    if(totalTime<=0) return [0]
+    const points = new Set()
+    timeline.forEach(s=>{ points.add(s.start); points.add(s.end) })
+    return Array.from(points).sort((a,b)=>a-b)
+  },[timeline, totalTime])
+
+  if(!timeline.length){
+    return <div className="text-[11px] text-gray-500">Run scheduler to generate timeline.</div>
+  }
+
+  const colorMap = {}
+  let ci = 0
+  timeline.forEach(s=>{
+    if(!colorMap[s.label]){
+      colorMap[s.label] = palette[ci % palette.length]
+      ci++
+    }
+  })
 
   return (
-    <div className="w-full border rounded-xl p-4 bg-white dark:bg-white/5">
-      <div className="gantt-bar-area" aria-hidden>
-        {t.map((s,i)=>{
-          const dur = Math.max(0, (s.end - s.start))
-          const pct = (dur / total) * 100
-          return (
-            <div
-              key={`${i}-${tick}`}
-              className="gantt-segment"
-              style={{
-                '--w': pct + '%',
-                background: colors[i % colors.length]
-              }}
-              title={`${s.pid} — ${dur} unit(s)`}
-            >
-              <div className="gantt-seg-label">{s.pid} <span className="gantt-duration">({dur})</span></div>
-            </div>
-          )
-        })}
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 text-[11px] text-gray-400">
+        <span>{scheduling.algorithm}</span>
+        {scheduling.algorithm==='RR' && <span>Q:{scheduling.quantum}</span>}
+        <span className="ml-auto">Total: {totalTime}</span>
       </div>
-      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">Total: {total} time units</div>
 
-      <style>{`
-        .gantt-bar-area{ display:flex; height:44px; overflow:hidden; border-radius:10px; background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01)); }
-        .gantt-segment{ width:0; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:12px;
-          transition: width 700ms cubic-bezier(.2,.9,.2,1), transform 300ms;
-          box-shadow: 0 6px 22px rgba(2,6,23,0.45); min-width:6px; height:100%;
-          border-right: 1px solid rgba(255,255,255,0.06); position:relative;
-        }
-        .gantt-segment[style]{ width: var(--w); }
-        .gantt-seg-label{ padding:0 12px; text-shadow:0 1px 0 rgba(0,0,0,0.15); display:flex; gap:6px; align-items:center;}
-        .gantt-duration{ font-weight:600; opacity:0.9; font-size:11px; color:rgba(255,255,255,0.95) }
-      `}</style>
+      <div className="relative">
+        <div className="absolute left-0 right-0 -top-6 h-5 pointer-events-none">
+          {ticks.map(t=>(
+            <div
+              key={t}
+              className="absolute -translate-x-1/2 top-0 flex flex-col items-center"
+              style={{ left: `${totalTime? (t/totalTime)*100 : 0}%` }}
+            >
+              <span className="text-[10px] text-gray-400">{t}</span>
+              <span className="w-px flex-1 bg-gray-600/30 mt-0.5" />
+            </div>
+          ))}
+        </div>
+
+        <div className="h-14 w-full rounded-md bg-white/5 border border-white/10 overflow-hidden relative flex">
+          {timeline.map((seg,i)=>{
+            const widthPct = totalTime ? (seg.duration/totalTime)*100 : 0
+            return (
+              <div
+                key={i}
+                className="h-full relative flex items-center justify-center"
+                style={{
+                  width: `${widthPct}%`,
+                  background: colorMap[seg.label]
+                }}
+              >
+                <span className="text-[11px] font-semibold text-white px-2 truncate drop-shadow">
+                  {seg.label}
+                </span>
+                <div className="absolute right-0 top-0 h-full w-px bg-white/20" />
+                <span className="absolute -bottom-4 right-0 translate-x-1/2 text-[10px] text-gray-400">
+                  {seg.end}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(colorMap).map(([label,col])=>(
+          <div key={label} className="flex items-center gap-1 text-[10px] text-gray-300">
+            <span className="w-3 h-3 rounded-sm" style={{ background:col }} />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
