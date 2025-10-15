@@ -29,9 +29,6 @@ npm install
 
 # Run development server
 npm run dev
-## Authors
-
-- [@octokatherine](https://www.github.com/octokatherine)
 
 
 ## Contributing
