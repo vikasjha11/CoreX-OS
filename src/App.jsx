@@ -8,7 +8,6 @@ import ContactUs from './components/ContactUs'
 import Footer from './components/Footer'
 import DeadlockSync from './pages/DeadlockSync'
 import ShellKernel from './pages/ShellKernel'
-import SecurityAccess from './pages/SecurityAccess'
 import Gamification from './pages/Gamification'
 import InnovationPage from './pages/Innovation'
 import ProcessMemoryCore from './pages/ProcessMemoryCore.jsx'
@@ -31,7 +30,6 @@ const App = () => {
         />
         <Route path="/deadlock" element={<DeadlockSync />} />
         <Route path="/shell-kernel" element={<ShellKernel />} />
-        <Route path="/security" element={<SecurityAccess />} />
         <Route path="/gamification" element={<Gamification />} />
         <Route path="/innovation" element={<InnovationPage />} />
         <Route path="/process-memory" element={<ProcessMemoryCore />} />
