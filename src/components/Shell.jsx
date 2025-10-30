@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 function useSimpleStore() {
   const [state, setState] = useState({
@@ -7,7 +7,11 @@ function useSimpleStore() {
     files: { root: [] },
     cwd: 'root',
     algorithm: 'FCFS',
-    quantum: 4
+    quantum: 4,
+    // scheduler extras
+    clock: 0,
+    running: null,
+    ready: []
   });
 
   const actions = {
@@ -18,7 +22,7 @@ function useSimpleStore() {
 }
 
 export default function Shell() {
-  const { state } = useSimpleStore();
+  const { state, actions } = useSimpleStore();
   const [lines, setLines] = useState([{ t: 'system', out: 'CoreXOS Shell v3.0 - Connecting to Custom Kernel...' }]);
   const [cmd, setCmd] = useState('');
   const [history, setHistory] = useState([]);
@@ -30,6 +34,36 @@ export default function Shell() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [lines]);
 
+  const addOutput = (input, output, type = 'out') => {
+    setLines((prev) => [
+      ...prev,
+      input ? { t: 'in', out: `$ ${input}` } : null,
+      { t: type, out: output }
+    ].filter(Boolean));
+  };
+
+  const fetchState = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/state');
+      if (!res.ok) throw new Error('State fetch failed');
+      const s = await res.json();
+      actions.setState({
+        processes: s.processes || [],
+        memory: s.memory || { total: 2048, used: 0 },
+        files: s.files || { root: [] },
+        cwd: s.cwd || 'root',
+        algorithm: s.algorithm || 'FCFS',
+        quantum: s.quantum ?? 4,
+        clock: s.clock ?? 0,
+        running: s.running ?? null,
+        ready: s.ready || []
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     const checkBackend = async () => {
       try {
@@ -38,28 +72,33 @@ export default function Shell() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ command: 'echo ping' })
         });
-        if (res.ok) {
+        if (!res.ok) throw new Error('Backend check failed');
+        const data = await res.json();
+        // echo ping -> "ping" is returned by server, treat as OK
+        if (data && (data.output === 'ping' || data.output)) {
           setBackendActive(true);
-          addOutput('', 'Kernel Online', 'system');
+          await fetchState();
+          setLines((prev) => [...prev, { t: 'system', out: 'Kernel Online' }]);
         } else {
           setBackendActive(false);
-          addOutput('', 'Kernel Offline', 'error');
+          setLines((prev) => [...prev, { t: 'error', out: 'Kernel Offline' }]);
         }
       } catch {
         setBackendActive(false);
-        addOutput('', 'Kernel Offline', 'error');
+        setLines((prev) => [...prev, { t: 'error', out: 'Kernel Offline' }]);
       }
     };
     checkBackend();
   }, []);
 
-  const addOutput = (input, output, type = 'out') => {
-    setLines((prev) => [
-      ...prev,
-      input ? { t: 'in', out: `$ ${input}` } : null,
-      { t: type, out: output }
-    ].filter(Boolean));
-  };
+  useEffect(() => {
+    if (!backendActive) return;
+    const id = setInterval(async () => {
+      const ok = await fetchState();
+      if (!ok) setBackendActive(false);
+    }, 2000);
+    return () => clearInterval(id);
+  }, [backendActive]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp') {
@@ -83,20 +122,60 @@ export default function Shell() {
   };
 
   const run = async (line) => {
-    if (!line.trim() || !backendActive) return;
-    setHistory((prev) => [...prev, line]);
+    const trimmed = line.trim();
+    if (!trimmed || !backendActive) return;
+
+    // Handle client-side clear
+    if (trimmed.toLowerCase() === 'clear') {
+      setLines([]);
+      setCmd('');
+      return;
+    }
+
+    setHistory((prev) => [...prev, trimmed]);
     setHistoryIndex(-1);
+
+    // echo prompt & command to lines (similar to GUI echo)
+    addOutput(trimmed, '', 'in');
 
     try {
       const res = await fetch('http://localhost:8000/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: line })
+        body: JSON.stringify({ command: trimmed })
       });
+      if (!res.ok) {
+        addOutput(trimmed, `Backend HTTP ${res.status}`, 'error');
+        setBackendActive(false);
+        setCmd('');
+        return;
+      }
       const data = await res.json();
-      addOutput(line, data.output || data.error || 'No response', data.error ? 'error' : 'out');
+
+      // Update store from backend state if present
+      if (data.state) {
+        actions.setState({
+          processes: data.state.processes || [],
+          memory: data.state.memory || { total: 2048, used: 0 },
+          files: data.state.files || { root: [] },
+          cwd: data.state.cwd || 'root',
+          algorithm: data.state.algorithm || 'FCFS',
+          quantum: data.state.quantum ?? 4,
+          clock: data.state.clock ?? 0,
+          running: data.state.running ?? null,
+          ready: data.state.ready || []
+        });
+      }
+
+      // Special clear directive
+      if (data.output === '__CLEAR__') {
+        setLines([]);
+      } else {
+        const out = data.output || data.error || 'No response';
+        addOutput(trimmed, out, data.error ? 'error' : 'out');
+      }
     } catch (err) {
-      addOutput(line, `Backend error: ${err.message}`, 'error');
+      addOutput(trimmed, `Backend error: ${err.message}`, 'error');
       setBackendActive(false);
     }
     setCmd('');
@@ -112,6 +191,9 @@ export default function Shell() {
     }
   };
 
+  const runningProc = state.processes.find(p => p.id === state.running);
+  const cpuLabel = runningProc ? `${runningProc.name}(${runningProc.id})` : 'idle';
+
   return (
     <div className="card-surface bg-gray-900/80 backdrop-blur-sm border-gray-700/50 shadow-2xl">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
@@ -125,7 +207,9 @@ export default function Shell() {
             CoreXOS Custom Shell {backendActive ? '(Online)' : '(Offline)'}
           </span>
         </div>
-        <div className="text-xs text-gray-500">{state.processes.length} processes | {state.algorithm} | Q:{state.quantum}ms</div>
+        <div className="text-xs text-gray-500">
+          {state.processes.length} processes | {state.algorithm} | Q:{state.quantum} | t:{state.clock} | CPU:{cpuLabel}
+        </div>
       </div>
 
       <div className="p-4 h-96 flex flex-col bg-black/90">
@@ -157,7 +241,7 @@ export default function Shell() {
 
       <div className="px-4 py-2 border-t border-gray-700/50 bg-gray-800/50">
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>↑/↓ for command history</span>
+          <span>↑/↓ for command history • try: add P1 2 64 8, setalg RR, setq 3, run 10</span>
           <span className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full animate-pulse ${backendActive ? 'bg-green-400' : 'bg-red-400'}`}></span>
             {backendActive ? 'Custom Kernel Active' : 'Kernel Offline'}

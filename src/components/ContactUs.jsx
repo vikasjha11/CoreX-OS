@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-const MAIL_TO = 'engineeringcorexos@gmail.com'
+const MAIL_TO = 'vikasjha850@gmail.com'
 
 export default function ContactUs() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
@@ -25,7 +25,6 @@ export default function ContactUs() {
     e.preventDefault()
     if (!form.email || !form.message) return
     const link = buildMailto()
-    // Some clients block long mailto URIs; fallback copy if too long
     if (link.length > 1800) {
       navigator.clipboard.writeText(
         `Send to: ${MAIL_TO}\n\nSubject: ${form.subject || '(none)'}\n\n${form.message}`

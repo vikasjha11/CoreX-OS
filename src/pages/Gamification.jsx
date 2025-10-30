@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function Gamification(){
   return (
     <PageLayout
@@ -16,7 +14,6 @@ export default function Gamification(){
     </PageLayout>
   )
 }
-
 function PageLayout({ title, subtitle, children }){
   return (
     <section className="py-20 max-w-5xl mx-auto px-6 space-y-10">

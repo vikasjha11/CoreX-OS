@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { IconMenu, IconClose, IconArrowRight } from './ui-icons'
 
 const links = [
-  { href: '#problems', label: 'Problems' },
-  { href: '#solution', label: 'Solution' },
-  { href: '#developers', label: 'Developers' }
+  { href: '/#problems', label: 'Problems' },
+  { href: '/#modules', label: 'Solution' },
+  { href: '/#developers', label: 'Developers' }
 ]
 
 const Navbar = () => {
@@ -37,13 +37,13 @@ const Navbar = () => {
         {/* Right actions */}
         <div className="flex items-center gap-3">
           <a
-            href="#contact"
+            href="/#contact"
             className="hidden md:inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium px-5 py-2.5 rounded-full transition shadow"
           >
             Contact
           </a>
             <a
-              href="#modules"
+              href="/#modules"
               className="hidden md:inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-full transition shadow"
             >
               Open Demo <IconArrowRight className="w-4 h-4" />
@@ -73,14 +73,14 @@ const Navbar = () => {
           ))}
           <div className="flex gap-3 pt-2">
             <a
-              href="#contact"
+              href="/#contact"
               onClick={() => setOpen(false)}
               className="inline-flex flex-1 items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-medium px-5 py-2.5 rounded-full transition shadow"
             >
               Contact
             </a>
             <a
-              href="#modules"
+              href="/#modules"
               onClick={() => setOpen(false)}
               className="inline-flex flex-1 items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-full transition shadow"
             >

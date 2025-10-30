@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { IconBolt, IconShield, IconCloud, IconArrowRight } from './ui-icons'
 
 const problems = [
@@ -87,14 +87,11 @@ const problems = [
     ]
   }
 ]
-
 export default function ProblemSolved() {
   const [open, setOpen] = useState(null)
-
   function toggle(idx) {
     setOpen(o => (o === idx ? null : idx))
   }
-
   return (
     <section id="problems" className="py-28 bg-black relative overflow-hidden">
       {/* Ambient gradients */}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/navbar'
 import Hero from './components/Hero'
@@ -9,7 +9,6 @@ import Footer from './components/Footer'
 import DeadlockSync from './pages/DeadlockSync'
 import ShellKernel from './pages/ShellKernel'
 import SecurityAccess from './pages/SecurityAccess'
-import VisualizationReporting from './pages/VisualizationReporting'
 import Gamification from './pages/Gamification'
 import InnovationPage from './pages/Innovation'
 import ProcessMemoryCore from './pages/ProcessMemoryCore.jsx'
@@ -33,7 +32,6 @@ const App = () => {
         <Route path="/deadlock" element={<DeadlockSync />} />
         <Route path="/shell-kernel" element={<ShellKernel />} />
         <Route path="/security" element={<SecurityAccess />} />
-        <Route path="/visualization" element={<VisualizationReporting />} />
         <Route path="/gamification" element={<Gamification />} />
         <Route path="/innovation" element={<InnovationPage />} />
         <Route path="/process-memory" element={<ProcessMemoryCore />} />
