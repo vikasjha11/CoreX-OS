@@ -1,21 +1,32 @@
 import React from 'react'
+import RecommendationPanel from '../components/innovation/AIRecommendationPanel'
+import WhatIfPanel from '../components/innovation/WhatIfPanel'
+import CrashRecoveryPanel from '../components/innovation/CrashRecoveryPanel'
+import RealWorldExamples from '../components/innovation/RealWorldExamples'
+import EvolutionTimeline from '../components/innovation/EvolutionTimeline'
 
 export default function InnovationPage(){
   return (
     <PageLayout
       title="Innovation Suite"
-      subtitle="AI scheduler advisor, what‑if predictions, crash & recovery, evolution timeline.">
+      subtitle="Scheduler advisor, what‑if predictions, crash & recovery, evolution timeline.">
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="card-surface p-6 text-xs">
-          <h3 className="font-semibold text-sm mb-2">AI Scheduler (stub)</h3>
-          <p>Analyze current workload and recommend algorithm/quantum.</p>
-          <button className="mt-4 px-5 h-9 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs">
-            Predict Best Algorithm
-          </button>
+          <div className="card-surface p-6 text-sm">
+          <RecommendationPanel />
         </div>
-        <div className="card-surface p-6 text-xs">
-          <h3 className="font-semibold text-sm mb-2">What‑If Mode (stub)</h3>
-          <p>Select algorithm & quantum to preview metrics without committing.</p>
+        <div className="card-surface p-6 text-sm">
+          <WhatIfPanel />
+        </div>
+
+        <div className="card-surface p-6 text-sm">
+          <CrashRecoveryPanel />
+        </div>
+        <div className="card-surface p-6 text-sm">
+          <RealWorldExamples />
+          <div className="mt-4">
+            <h4 className="font-semibold">Evolution Preview</h4>
+            <EvolutionTimeline />
+          </div>
         </div>
       </div>
     </PageLayout>

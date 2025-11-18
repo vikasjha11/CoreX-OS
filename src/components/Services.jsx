@@ -31,7 +31,7 @@ const modules = [
   {
     title: 'Innovation Suite',
     to: '/innovation',
-    desc: 'AI scheduler advisor, what‑if predictions & evolution roadmap.',
+    desc: 'Scheduler advisor, what‑if predictions & evolution roadmap.',
     icon: <IconCloud className="w-6 h-6" />,    
     badge: 'IN THIRD EVALUATION'
   }

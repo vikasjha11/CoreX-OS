@@ -173,7 +173,7 @@ export default function ProblemSolved() {
           <Badge>Fragmentation Map</Badge>
           <Badge>Multi‑Algorithm</Badge>
           <Badge>Unified State</Badge>
-          <Badge>AI Advisor (Planned)</Badge>
+          <Badge>Scheduler Advisor (Planned)</Badge>
         </div>
       </div>
     </section>
